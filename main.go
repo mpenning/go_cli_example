@@ -62,7 +62,7 @@ func main() {
 
 			statistics := ping(hostname, count, size, interval)
 
-			summary := "Packet loss: " + strconv.FormatFloat(statistics.PacketLoss, 'f', 3, 64) + " percent"
+			summary := "Packet loss: " + strconv.FormatFloat(statistics.PacketLoss, 'f', 3, 64) + "%"
 			slog.Info(summary)
 
 			return nil

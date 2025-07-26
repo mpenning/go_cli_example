@@ -92,8 +92,8 @@ func ping(hostname string, count int, size int, intervalMs float64) *probing.Sta
 	}
 	slog.Debug(hosts)
 
-	if size > 1470 {
-		_error := "Ping size cannot be larger than 1470 bytes"
+	if (24 >= size) || (size > 1470) {
+		_error := "Ping payload must be between 24 and 1470 bytes"
 		slog.Error(_error)
 		os.Exit(1)
 	}

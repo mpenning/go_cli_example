@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"math"
 	"net"
 	"os"
 	"strconv"
@@ -121,7 +122,8 @@ func ping(hostname string, count int, size int, intervalMs float64) *probing.Sta
 
 	// time.Duration() is nanoseconds... convert to milliseconds
 	pinger.Interval = time.Duration(intervalMs * 1000000.0)
-	pinger.Timeout = time.Second
+	// Using default Timeout from prob-bing package
+	pinger.Timeout = time.Duration(math.MaxInt64)
 	pinger.SetPrivileged(true)
 	pinger.SetDoNotFragment(true)
 	pinger.Count = count

@@ -26,6 +26,11 @@ GLOBAL OPTIONS:
    --help, -h                  show help
 ```
 
+## Building from source
+
+On linux, use `make all`, it should do the rest (including building static / dynamically linked libraries)
+
   [1]: https://github.com/prometheus-community/pro-bing
   [2]: https://github.com/urfave/cli
+
 

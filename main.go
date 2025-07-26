@@ -1,0 +1,136 @@
+package main
+
+import (
+	"context"
+	"net"
+	"os"
+	"strconv"
+	"time"
+
+	"github.com/gookit/slog"
+	probing "github.com/prometheus-community/pro-bing"
+	cli "github.com/urfave/cli/v3"
+)
+
+func main() {
+	// Define the main ping command for the application
+	app := &cli.Command{
+		Name:    "pinger",
+		Usage:   "A simple ping application",
+		Version: "0.0.1",
+		Flags: []cli.Flag{
+			// Define an IntFlag named "count"
+			&cli.IntFlag{
+				Name:    "count",
+				Aliases: []string{"c"},
+				Value:   10, // Default value
+				Usage:   "Number of times to ping",
+			},
+			&cli.IntFlag{
+				Name:    "size",
+				Aliases: []string{"s"},
+				Value:   100, // Default value
+				Usage:   "Size of the ping payload",
+			},
+			&cli.Float64Flag{
+				Name:    "interval",
+				Aliases: []string{"i"},
+				Value:   100.0, // Default value
+				Usage:   "ping interval (milliseconds); default is 100ms",
+			},
+		},
+
+		// Set up a deferred action here...
+		Action: func(_ context.Context, cmd *cli.Command) error {
+			/* no error will be returned.  Errors are handled inline */
+
+			// Ensure that the program runs as root
+			if os.Geteuid() != 0 {
+				_error := "Program must run as root"
+				slog.Fatal(_error)
+				os.Exit(1)
+			}
+
+			// Get the positional argument (hostname)
+			hostname := cmd.Args().Get(0)
+
+			// Access flag values using cmd.String(), cmd.Bool(), cmd.Int()
+			count := cmd.Int("count")
+			size := cmd.Int("size")
+			interval := cmd.Float64("interval")
+
+			statistics := ping(hostname, count, size, interval)
+
+			summary := "Packet loss: " + strconv.FormatFloat(statistics.PacketLoss, 'f', 3, 64) + " percent"
+			slog.Info(summary)
+
+			return nil
+		},
+	}
+
+	// Run the deferred application with command-line arguments
+	if err := app.Run(context.Background(), os.Args); err != nil {
+		slog.Fatal(err.Error())
+		os.Exit(1)
+	}
+}
+
+func ping(hostname string, count int, size int, intervalMs float64) *probing.Statistics {
+	/*
+		Attempt to ping a remote host with the Prometheus pro-bing library.
+	*/
+
+	// Check that the hostname resolves
+	hosts, err := net.LookupHost(hostname)
+	if len(hosts) == 0 {
+		_error := "Invalid hostname: " + hostname + " " + err.Error()
+		slog.Fatal(_error)
+		panic(_error)
+	} else {
+		slog.Debug(hosts)
+	}
+	slog.Debug(hosts)
+
+	if size > 1470 {
+		_error := "Ping size cannot be larger than 1470 bytes"
+		slog.Error(_error)
+		os.Exit(1)
+	}
+
+	// validate packet count is sane
+	if count < 1 {
+		_error := "Invalid count.  Cannot ping " + hostname + " with " + strconv.Itoa(count) + " packets"
+		slog.Fatal(_error)
+		os.Exit(1)
+	}
+
+	// validate ping interval is sane
+	if intervalMs < 1.0 {
+		_error := "Invalid packet interval. Specify an interval of at least 1.0 millisecond"
+		slog.Fatal(_error)
+		os.Exit(1)
+	}
+
+	pinger, err := probing.NewPinger(hostname)
+	if err != nil {
+		slog.Fatal(err.Error())
+		os.Exit(1)
+	}
+
+	slog.Info("pinging " + pinger.Addr() + " " + pinger.IPAddr().String() + " " + strconv.Itoa(count) + " times with " + strconv.Itoa(size) + " byte ICMP payloads")
+
+	// time.Duration() is nanoseconds... convert to milliseconds
+	pinger.Interval = time.Duration(intervalMs * 1000000.0)
+	pinger.Timeout = time.Second
+	pinger.SetPrivileged(true)
+	pinger.SetDoNotFragment(true)
+	pinger.Count = count
+	pinger.Size = size // ICMP payload size
+	err = pinger.Run()
+	if err != nil {
+		slog.Fatal(err.Error())
+		os.Exit(1)
+	}
+
+	return pinger.Statistics()
+}

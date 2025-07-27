@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"math"
 	"net"
 	"os"
 	"strconv"
@@ -93,9 +92,8 @@ func ping(hostname string, count int, size int, intervalMs float64) *probing.Sta
 		_error := "Invalid hostname: " + hostname + " " + err.Error()
 		slog.Fatal(_error)
 		panic(_error)
-	} else {
-		slog.Debug(hosts)
 	}
+
 	slog.Debug(hosts)
 
 	if (23 >= size) || (size >= 1470) {
@@ -131,12 +129,12 @@ func ping(hostname string, count int, size int, intervalMs float64) *probing.Sta
 
 	// time.Duration() is nanoseconds... convert to milliseconds
 	pinger.Interval = time.Duration(intervalMs * 1000000.0)
-	// Using default Timeout from prob-bing package
-	pinger.Timeout = time.Duration(math.MaxInt64)
+	pinger.Timeout = time.Duration(float64(count)*intervalMs) * time.Millisecond
 	pinger.SetPrivileged(true)
 	pinger.SetDoNotFragment(true)
 	pinger.Count = count
 	pinger.Size = size // ICMP payload size
+
 	err = pinger.Run()
 	if err != nil {
 		slog.Fatal(err.Error())

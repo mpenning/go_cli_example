@@ -20,28 +20,32 @@ func main() {
 		Usage:   "A simple ping application",
 		Version: "0.0.1",
 		Flags: []cli.Flag{
-			// Define an IntFlag named "count"
+			// Define an IntFlag as --count
 			&cli.IntFlag{
 				Name:    "count",
-				Aliases: []string{"c"},
-				Value:   10, // Default value
+				Aliases: []string{"c"}, // Process -c
+				Value:   10,            // Default value
 				Usage:   "Number of times to ping",
 			},
+			// Define an IntFlag as --size
 			&cli.IntFlag{
 				Name:    "size",
-				Aliases: []string{"s"},
-				Value:   100, // Default value
+				Aliases: []string{"s"}, // Process -s
+				Value:   100,           // Default value
 				Usage:   "Size of the ping payload",
 			},
+			// Define an Float64Flag as --interval
 			&cli.Float64Flag{
 				Name:    "interval",
-				Aliases: []string{"i"},
-				Value:   100.0, // Default value
+				Aliases: []string{"i"}, // Process -i
+				Value:   100.0,         // Default value
 				Usage:   "ping interval (milliseconds); default is 100ms",
 			},
 		},
 
-		// Set up a deferred action here...
+		//////////////////////////////////////////////////////
+		// Set up a deferred action via urfave/cli here...
+		//////////////////////////////////////////////////////
 		Action: func(_ context.Context, cmd *cli.Command) error {
 			/* no error will be returned.  Errors are handled inline */
 
@@ -52,10 +56,10 @@ func main() {
 				os.Exit(1)
 			}
 
-			// Get the positional argument (hostname)
+			// Get the CLI positional argument (hostname)
 			hostname := cmd.Args().Get(0)
 
-			// Access flag values using cmd.String(), cmd.Bool(), cmd.Int()
+			// Access urfave/cli flag values...
 			count := cmd.Int("count")
 			size := cmd.Int("size")
 			interval := cmd.Float64("interval")
@@ -69,7 +73,9 @@ func main() {
 		},
 	}
 
+	///////////////////////////////////////////////////////////////
 	// Run the deferred application with command-line arguments
+	///////////////////////////////////////////////////////////////
 	if err := app.Run(context.Background(), os.Args); err != nil {
 		slog.Fatal(err.Error())
 		os.Exit(1)
@@ -92,7 +98,7 @@ func ping(hostname string, count int, size int, intervalMs float64) *probing.Sta
 	}
 	slog.Debug(hosts)
 
-	if (24 >= size) || (size > 1470) {
+	if (23 >= size) || (size >= 1470) {
 		_error := "Ping payload must be between 24 and 1470 bytes"
 		slog.Error(_error)
 		os.Exit(1)
@@ -112,6 +118,9 @@ func ping(hostname string, count int, size int, intervalMs float64) *probing.Sta
 		os.Exit(1)
 	}
 
+	/////////////////////////////////////////////
+	// Set up the pinger instance
+	/////////////////////////////////////////////
 	pinger, err := probing.NewPinger(hostname)
 	if err != nil {
 		slog.Fatal(err.Error())

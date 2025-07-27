@@ -4,6 +4,7 @@ This builds a simple golang CLI ping binary using:
 
 - [`probing`][1]
 - [`urfave/cli`][2]
+- [`gookit/slog`][3]
 
 ## Syntax
 
@@ -36,5 +37,6 @@ On linux, use `make all`, it should do the rest (including building static / dyn
 
   [1]: https://github.com/prometheus-community/pro-bing
   [2]: https://github.com/urfave/cli
+  [3]: https://github.com/gookit/slog
 
 

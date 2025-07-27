@@ -26,6 +26,10 @@ GLOBAL OPTIONS:
    --help, -h                  show help
 ```
 
+## Changing dependency versions
+
+If you want to change versions of the dependencies, the best way to do so is when they are installed via the `Makefile`.
+
 ## Building from source
 
 On linux, use `make all`, it should do the rest (including building static / dynamically linked libraries)

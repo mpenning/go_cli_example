@@ -1,5 +1,8 @@
 package main
 
+// gookit/slog, below, conflicts with the stdlib slog
+// namespace.  For now, I'm keeping it because I
+// like the output off gookit/slot more.
 import (
 	"context"
 	"net"
